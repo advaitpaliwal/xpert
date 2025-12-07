@@ -19,14 +19,8 @@ export const TopicsWithProfileSchema = z.object({
 });
 
 export const ContentTopicsSchema = z.object({
-  reading: z
-    .array(TopicSchema)
-    .length(2)
-    .describe("Exactly 2 reading topics related to the main topic"),
-  audio: z
-    .array(TopicSchema)
-    .length(2)
-    .describe("Exactly 2 audio/podcast topics related to the main topic"),
+  reading: TopicSchema.describe("1 reading topic related to the main topic"),
+  audio: TopicSchema.describe("1 audio/podcast topic related to the main topic"),
   video: TopicSchema.describe("1 video topic related to the main topic"),
 });
 
@@ -41,10 +35,12 @@ export type Topic = {
 export type Topics = Topic[];
 
 export type ContentTopics = {
-  reading: Topics;
-  audio: Topics;
+  reading: Topic;
+  audio: Topic;
   video: Topic;
 };
+
+export type TopicsWithProfile = z.infer<typeof TopicsWithProfileSchema>;
 
 export const QuizQuestionSchema = z.object({
   question: z.string().describe("The question text"),
@@ -64,11 +60,42 @@ export const QuizSchema = z.object({
 export type QuizQuestion = z.infer<typeof QuizQuestionSchema>;
 export type Quiz = z.infer<typeof QuizSchema>;
 
-export const MindmapSchema = z.object({
-  markdown: z.string().describe("Markdown formatted mindmap content using headers (#, ##, ###) and lists (-, *) to represent hierarchy"),
+export const SlideSchema = z.object({
+  title: z.string().describe("Short, clear title for this slide"),
+  bullets: z.array(z.string()).min(2).max(5).describe("2-5 bullet points with key information (each bullet should be concise, 1-2 sentences)"),
+  audioTranscript: z.string().describe("Natural speech transcript for what should be narrated for this slide (conversational tone, 20-30 seconds when spoken)"),
 });
 
-export type Mindmap = z.infer<typeof MindmapSchema>;
+export const SlideshowSchema = z.object({
+  slides: z
+    .array(SlideSchema)
+    .length(10)
+    .describe("Exactly 10 slides that tell a cohesive story about the topic, progressing logically from introduction to conclusion"),
+});
+
+export type Slide = z.infer<typeof SlideSchema> & {
+  id: string;
+};
+
+export type Slideshow = {
+  slides: Slide[];
+};
+
+export const PodcastTurnSchema = z.object({
+  speaker: z.enum(["host", "guest"]).describe("Which speaker is talking - either 'host' or 'guest'"),
+  text: z.string().describe("What the speaker says in this turn - should be natural, conversational, and engaging (2-4 sentences)"),
+});
+
+export const PodcastScriptSchema = z.object({
+  turns: z
+    .array(PodcastTurnSchema)
+    .min(8)
+    .max(16)
+    .describe("8-16 turns alternating between host and guest, creating a natural back-and-forth conversation"),
+});
+
+export type PodcastTurn = z.infer<typeof PodcastTurnSchema>;
+export type PodcastScript = z.infer<typeof PodcastScriptSchema>;
 
 export function generateId(title: string): string {
   const slug = title

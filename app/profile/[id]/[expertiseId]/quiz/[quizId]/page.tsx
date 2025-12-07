@@ -7,7 +7,6 @@ import { ChevronLeft, Check, X } from "lucide-react";
 import Image from "next/image";
 import { useQuiz } from "@/hooks/use-quiz";
 import { useExpertise } from "@/hooks/use-expertise";
-import { useContentTopics } from "@/hooks/use-content-topics";
 import { useTopicImage } from "@/hooks/use-topic-image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";

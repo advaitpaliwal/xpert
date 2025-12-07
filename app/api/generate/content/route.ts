@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { xai } from "@ai-sdk/xai";
 import { generateObject } from "ai";
 import { ContentTopicsSchema, generateId, type ContentTopics } from "@/lib/schemas";
+import { tryFixAndParseJsonFromError } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,22 +20,29 @@ export async function POST(request: NextRequest) {
       schema: ContentTopicsSchema,
       system:
         "You are an expert content curator. Generate relevant topic suggestions for different content types based on the given topic. It should be something simple that could be taught in a university course.",
-      prompt: `Generate content topics for "${topicTitle}": ${topicDescription}. Create 2 reading topics, 2 audio/podcast topics, and 1 video topic. These are topic suggestions for content that will be generated later.`,
+      prompt: `Generate content topics for "${topicTitle}": ${topicDescription}. Create 1 reading topic, 1 audio/podcast topic, and 1 video topic. These are topic suggestions for content that will be generated later.`,
+    }).catch((error) => {
+      const fixed = tryFixAndParseJsonFromError<ContentTopics>(error);
+      if (fixed) {
+        console.log("Attempting to fix malformed JSON...");
+        const validated = ContentTopicsSchema.safeParse(fixed);
+        if (validated.success) {
+          console.log("Successfully fixed malformed JSON");
+          return { object: validated.data };
+        }
+      }
+      throw error;
     });
 
-    const reading = result.object.reading.map((topic) => ({
-      ...topic,
-      id: generateId(topic.title),
-    }));
-
-    const audio = result.object.audio.map((topic) => ({
-      ...topic,
-      id: generateId(topic.title),
-    }));
-
     const contentTopics: ContentTopics = {
-      reading,
-      audio,
+      reading: {
+        ...result.object.reading,
+        id: generateId(result.object.reading.title),
+      },
+      audio: {
+        ...result.object.audio,
+        id: generateId(result.object.audio.title),
+      },
       video: {
         ...result.object.video,
         id: generateId(result.object.video.title),

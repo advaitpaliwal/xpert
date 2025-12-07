@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { xai } from "@ai-sdk/xai";
-import { experimental_generateImage as generateImage } from "ai";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,12 +11,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await generateImage({
-      model: xai.image("grok-2-image"),
-      prompt,
+    const response = await fetch("https://api.x.ai/v1/images/generations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.XAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        prompt,
+        model: "grok-imagine-v0p9",
+        response_format: "url",
+      }),
     });
 
-    const imageUrl = `data:${result.image.mediaType};base64,${result.image.base64}`;
+    if (!response.ok) {
+      throw new Error(`xAI API error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const imageUrl = data.data[0].url;
 
     return NextResponse.json({ imageUrl });
   } catch (error) {

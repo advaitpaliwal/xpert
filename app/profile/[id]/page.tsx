@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ProfileHeader } from "@/components/profile-header";
 import { TopicCard } from "@/components/topic-card";

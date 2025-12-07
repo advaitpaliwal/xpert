@@ -21,7 +21,7 @@ export function ProfileHeader({
   banner,
   bio,
   verified,
-  verifiedType,
+  // verifiedType is reserved for future use; keeping it for shape compatibility.
   followerCount,
   followingCount
 }: ProfileHeaderProps) {

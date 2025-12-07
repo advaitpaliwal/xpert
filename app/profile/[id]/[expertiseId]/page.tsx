@@ -53,6 +53,7 @@ export default function ExpertisePage({ params }: { params: Promise<{ id: string
                                 src={imageUrl}
                                 alt={displayTitle}
                                 fill
+                                loading="eager"
                                 className="object-cover"
                             />
                         </div>
@@ -67,9 +68,9 @@ export default function ExpertisePage({ params }: { params: Promise<{ id: string
                 {contentTopics && generatedTopic && (
                     <div className="hidden">
                         <ImagePreloader items={[
-                            ...contentTopics.reading,
+                            contentTopics.reading,
                             contentTopics.video,
-                            ...contentTopics.audio,
+                            contentTopics.audio,
                             generatedTopic,
                         ]} />
                     </div>
@@ -96,13 +97,13 @@ export default function ExpertisePage({ params }: { params: Promise<{ id: string
                     </TabsList>
 
                     <TabsContent value="reading">
-                        {loading ? <SkeletonGrid /> : contentTopics && <TopicGrid items={contentTopics.reading} type="reading" username={id} expertiseId={expertiseId} />}
+                        {loading ? <SkeletonGrid /> : contentTopics && <TopicGrid items={[contentTopics.reading]} type="reading" username={id} expertiseId={expertiseId} />}
                     </TabsContent>
                     <TabsContent value="watching">
                         {loading ? <SkeletonGrid /> : contentTopics && <TopicGrid items={[contentTopics.video]} type="watching" username={id} expertiseId={expertiseId} />}
                     </TabsContent>
                     <TabsContent value="listening">
-                        {loading ? <SkeletonGrid /> : contentTopics && <TopicGrid items={contentTopics.audio} type="listening" username={id} expertiseId={expertiseId} />}
+                        {loading ? <SkeletonGrid /> : contentTopics && <TopicGrid items={[contentTopics.audio]} type="listening" username={id} expertiseId={expertiseId} />}
                     </TabsContent>
                     <TabsContent value="interacting">
                         {loading ? <SkeletonGrid /> : generatedTopic && <InteractiveGrid topic={generatedTopic} username={id} expertiseId={expertiseId} />}
@@ -137,20 +138,10 @@ function InteractiveGrid({ topic, username, expertiseId }: { topic: Topic; usern
         description: `Test your knowledge of ${topic.title} with interactive multiple choice questions`,
     };
 
-    const mindmapTopic = {
-        ...topic,
-        id: `${topic.id}-mindmap`,
-        title: `Mindmap: ${topic.title}`,
-        description: `Visual exploration of ${topic.title} concepts and relationships`,
-    };
-
     return (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             <Link href={`/profile/${username}/${expertiseId}/quiz/${quizTopic.id}`} className="block group cursor-pointer">
                 <TopicGridContent item={quizTopic} />
-            </Link>
-            <Link href={`/profile/${username}/${expertiseId}/mindmap/${mindmapTopic.id}`} className="block group cursor-pointer">
-                <TopicGridContent item={mindmapTopic} />
             </Link>
         </div>
     );
@@ -158,11 +149,29 @@ function InteractiveGrid({ topic, username, expertiseId }: { topic: Topic; usern
 
 function TopicGridItem({ item, type, username, expertiseId }: { item: Topic; type: string; username: string; expertiseId: string }) {
     const isReading = type === "reading";
+    const isWatching = type === "watching";
+    const isListening = type === "listening";
     const content = <TopicGridContent item={item} />;
 
     if (isReading) {
         return (
             <Link href={`/profile/${username}/${expertiseId}/reading/${item.id}`} className="block group cursor-pointer">
+                {content}
+            </Link>
+        );
+    }
+
+    if (isWatching) {
+        return (
+            <Link href={`/profile/${username}/${expertiseId}/video/${item.id}`} className="block group cursor-pointer">
+                {content}
+            </Link>
+        );
+    }
+
+    if (isListening) {
+        return (
+            <Link href={`/profile/${username}/${expertiseId}/audio/${item.id}`} className="block group cursor-pointer">
                 {content}
             </Link>
         );

@@ -10,7 +10,6 @@ import { useReadingContent } from "@/hooks/use-reading-content";
 import { useExpertise } from "@/hooks/use-expertise";
 import { useContentTopics } from "@/hooks/use-content-topics";
 import { useTopicImage } from "@/hooks/use-topic-image";
-import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ReadingPage({
   params,
@@ -23,7 +22,7 @@ export default function ReadingPage({
   const expertise = useExpertise(id);
   const expertiseTopic = expertise?.find((t) => t.id === expertiseId);
   const { contentTopics } = useContentTopics({ id, expertiseId, expertiseTopic });
-  const readingTopic = contentTopics?.reading.find((r) => r.id === readingId);
+  const readingTopic = contentTopics?.reading.id === readingId ? contentTopics.reading : undefined;
 
   // Use the same image hook which pulls from React Query cache
   const { imageUrl } = useTopicImage(
@@ -31,7 +30,7 @@ export default function ReadingPage({
     readingTopic?.id || ""
   );
 
-  const { content, loading, isStreaming } = useReadingContent({
+  const { content, isStreaming } = useReadingContent({
     id,
     expertiseId,
     readingId,

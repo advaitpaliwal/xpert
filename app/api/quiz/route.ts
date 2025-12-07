@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { xai } from "@ai-sdk/xai";
 import { generateObject } from "ai";
-import { QuizSchema } from "@/lib/schemas";
+import { QuizSchema, type Quiz } from "@/lib/schemas";
+import { tryFixAndParseJsonFromError } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await generateObject({
-      model: xai("grok-2-1212"),
+      model: xai("grok-4-1-fast-non-reasoning"),
       schema: QuizSchema,
       system: "You are an expert quiz creator specializing in educational assessments. Create engaging, well-structured multiple choice questions that test understanding and critical thinking.",
       prompt: `Create a quiz about "${quizTitle}" for @${username}.
@@ -34,6 +35,17 @@ Create a comprehensive quiz with 8-12 multiple choice questions that:
 6. Cover different aspects of the topic
 
 Make questions challenging but fair. Avoid trick questions or overly obscure details. Focus on testing genuine understanding of the material.`,
+    }).catch((error) => {
+      const fixed = tryFixAndParseJsonFromError<Quiz>(error);
+      if (fixed?.questions) {
+        console.warn("Attempting to fix malformed JSON for quiz...");
+        const validated = QuizSchema.safeParse(fixed);
+        if (validated.success) {
+          console.log("Successfully fixed malformed JSON");
+          return { object: validated.data };
+        }
+      }
+      throw error;
     });
 
     return NextResponse.json({ quiz: result.object });

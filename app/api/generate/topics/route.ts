@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { xai } from "@ai-sdk/xai";
 import { generateObject } from "ai";
-import { TopicsWithProfileSchema, generateId, type Topics } from "@/lib/schemas";
+import { TopicsWithProfileSchema, generateId, type Topics, type TopicsWithProfile } from "@/lib/schemas";
+import { tryFixAndParseJsonFromError } from "@/lib/utils";
 
 interface XUserData {
   user: {
@@ -79,12 +80,23 @@ Recent tweets (${tweets.length} original posts):
 ${tweetTexts}
 
 Based on this REAL data, identify 4 broad expertise topics and create a fun, quirky, punchy descriptor for who they are. Be creative and playful with the descriptor - make it memorable and unique to their personality and expertise shown in their actual content.`,
+    }).catch((error) => {
+      const fixed = tryFixAndParseJsonFromError<TopicsWithProfile>(error);
+      if (fixed?.topics && fixed?.profileDescription) {
+        console.warn("Attempting to fix malformed JSON for topics...");
+        const validated = TopicsWithProfileSchema.safeParse(fixed);
+        if (validated.success) {
+          console.log("Successfully fixed malformed JSON");
+          return { object: validated.data };
+        }
+      }
+      throw error;
     });
 
     const topics: Topics = result.object.topics.map((topic) => ({
       ...topic,
       id: generateId(topic.title),
-    }));
+    })) as Topics;
 
     const response = {
       topics,

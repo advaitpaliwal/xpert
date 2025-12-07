@@ -5,7 +5,7 @@ export async function POST(req: Request) {
   const { username, expertiseTopic, expertiseDescription, readingTitle, readingDescription } = await req.json();
 
   const result = streamText({
-    model: xai("grok-2-1212"),
+    model: xai("grok-4-1-fast-non-reasoning"),
     system: `You are an expert content creator specializing in educational writing. Create compelling, in-depth reading content that teaches and engages.`,
     prompt: `Create the body content for an educational article about "${readingTitle}" for @${username}.
 
