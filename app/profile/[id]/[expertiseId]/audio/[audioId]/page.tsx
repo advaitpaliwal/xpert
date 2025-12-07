@@ -48,7 +48,7 @@ export default function AudioPage({
     return Math.ceil((wordCount / wordsPerMinute) * 60); // in seconds
   })() : 0;
 
-  // Step 2: Build the audio URL (streams directly from API - no blob needed!)
+  // Step 2: Build the audio URL (streams directly from API - no caching)
   const audioUrl = scriptParams ? `/api/podcast?${new URLSearchParams({
     username: scriptParams.username,
     expertiseTopic: scriptParams.expertiseTopic,

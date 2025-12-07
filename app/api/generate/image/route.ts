@@ -31,7 +31,14 @@ export async function POST(request: NextRequest) {
     const data = await response.json();
     const imageUrl = data.data[0].url;
 
-    return NextResponse.json({ imageUrl });
+    return NextResponse.json(
+      { imageUrl },
+      {
+        headers: {
+          "Cache-Control": "public, max-age=31536000, immutable",
+        },
+      }
+    );
   } catch (error) {
     console.error("Error generating image:", error);
     return NextResponse.json(

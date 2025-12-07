@@ -6,7 +6,7 @@ import { tryFixAndParseJsonFromError } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
   try {
-    const { username, expertiseTopic, expertiseDescription, videoTitle, videoDescription } = await request.json();
+    const { expertiseTopic, expertiseDescription, videoTitle, videoDescription } = await request.json();
 
     if (!videoTitle || !videoDescription) {
       return NextResponse.json(
@@ -22,10 +22,10 @@ export async function POST(request: NextRequest) {
       schema: SlideshowSchema,
       system: `You are an expert educational content creator. Create engaging presentation slides.
 CRITICAL: Output ONLY valid JSON. Ensure all strings are properly escaped. No special characters that break JSON.`,
-      prompt: `Create a 10-slide presentation about "${videoTitle}" that is ABOUT @${username} (they are the subject/expert), not addressed to them.
+      prompt: `Create a 10-slide presentation about "${videoTitle}".
 
 Context:
-- This is part of their expertise in: ${expertiseTopic} - ${expertiseDescription}
+- Related expertise area: ${expertiseTopic} - ${expertiseDescription}
 - Video topic: ${videoTitle}
 - Topic description: ${videoDescription}
 
@@ -43,8 +43,8 @@ Create exactly 10 slides that:
 IMPORTANT: Keep text simple. Avoid special characters that might break JSON (emojis, fancy quotes, etc).
 
 Voice and perspective:
-- The audience is learning about @${username}; do NOT address @${username} as the viewer.
-- Refer to @${username} in third-person (they/them) and present them as the expert/subject.
+- Present the content in an educational, engaging way directly to the viewer
+- Use second-person ("you") when appropriate to engage the audience
 
 Make the content educational but entertaining. The slides should work together as a cohesive presentation that teaches the viewer about this topic in an engaging way.`,
     }).catch((error) => {

@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { type Topic } from "@/lib/schemas";
 import { useContentTopics } from "@/hooks/use-content-topics";
 import { useExpertise } from "@/hooks/use-expertise";
@@ -64,7 +63,7 @@ export default function ExpertisePage({ params }: { params: Promise<{ id: string
                     </div>
                 </header>
 
-                {/* Preload all images regardless of active tab */}
+                {/* Preload all images */}
                 {contentTopics && generatedTopic && (
                     <div className="hidden">
                         <ImagePreloader items={[
@@ -76,47 +75,101 @@ export default function ExpertisePage({ params }: { params: Promise<{ id: string
                     </div>
                 )}
 
-                <Tabs defaultValue="reading">
-                    <TabsList className="grid grid-cols-2 md:grid-cols-4 gap-1 mb-6 h-auto w-full bg-muted p-1 rounded-lg">
-                        <TabsTrigger value="reading" className="h-24 flex-col gap-2 text-lg font-semibold">
-                            <span className="text-3xl">📚</span>
-                            Reading
-                        </TabsTrigger>
-                        <TabsTrigger value="watching" className="h-24 flex-col gap-2 text-lg font-semibold">
-                            <span className="text-3xl">📺</span>
-                            Watching
-                        </TabsTrigger>
-                        <TabsTrigger value="listening" className="h-24 flex-col gap-2 text-lg font-semibold">
-                            <span className="text-3xl">🎧</span>
-                            Listening
-                        </TabsTrigger>
-                        <TabsTrigger value="interacting" className="h-24 flex-col gap-2 text-lg font-semibold">
-                            <span className="text-3xl">🎮</span>
-                            Interacting
-                        </TabsTrigger>
-                    </TabsList>
+                {/* All Content Sections - Horizontal Layout */}
+                {loading ? (
+                    <AllContentSkeleton />
+                ) : (
+                    <div className="grid grid-cols-4 gap-8">
+                        {/* Read Section */}
+                        {contentTopics && (
+                            <ContentSection
+                                title="Read"
+                                icon="📚"
+                            >
+                                <TopicGrid items={[contentTopics.reading]} type="reading" username={id} expertiseId={expertiseId} />
+                            </ContentSection>
+                        )}
 
-                    <TabsContent value="reading">
-                        {loading ? <SkeletonGrid /> : contentTopics && <TopicGrid items={[contentTopics.reading]} type="reading" username={id} expertiseId={expertiseId} />}
-                    </TabsContent>
-                    <TabsContent value="watching">
-                        {loading ? <SkeletonGrid /> : contentTopics && <TopicGrid items={[contentTopics.video]} type="watching" username={id} expertiseId={expertiseId} />}
-                    </TabsContent>
-                    <TabsContent value="listening">
-                        {loading ? <SkeletonGrid /> : contentTopics && <TopicGrid items={[contentTopics.audio]} type="listening" username={id} expertiseId={expertiseId} />}
-                    </TabsContent>
-                    <TabsContent value="interacting">
-                        {loading ? <SkeletonGrid /> : generatedTopic && <InteractiveGrid topic={generatedTopic} username={id} expertiseId={expertiseId} />}
-                    </TabsContent>
-                </Tabs>
+                        {/* Watch Section */}
+                        {contentTopics && (
+                            <ContentSection
+                                title="Watch"
+                                icon="📺"
+                            >
+                                <TopicGrid items={[contentTopics.video]} type="watching" username={id} expertiseId={expertiseId} />
+                            </ContentSection>
+                        )}
+
+                        {/* Listen Section */}
+                        {contentTopics && (
+                            <ContentSection
+                                title="Listen"
+                                icon="🎧"
+                            >
+                                <TopicGrid items={[contentTopics.audio]} type="listening" username={id} expertiseId={expertiseId} />
+                            </ContentSection>
+                        )}
+
+                        {/* Interact Section */}
+                        {generatedTopic && (
+                            <ContentSection
+                                title="Interact"
+                                icon="🎮"
+                            >
+                                <InteractiveGrid topic={generatedTopic} username={id} expertiseId={expertiseId} />
+                            </ContentSection>
+                        )}
+                    </div>
+                )}
             </div>
         </main>
     );
 }
 
+function ContentSection({
+    title,
+    icon,
+    children
+}: {
+    title: string;
+    icon: string;
+    children: React.ReactNode;
+}) {
+    return (
+        <section className="space-y-4">
+            <div className="flex items-center gap-2">
+                <span className="text-2xl">{icon}</span>
+                <h2 className="text-xl font-bold">{title}</h2>
+            </div>
+            {children}
+        </section>
+    );
+}
+
+function AllContentSkeleton() {
+    return (
+        <div className="grid grid-cols-4 gap-8">
+            {[
+                { icon: "📚", title: "Read" },
+                { icon: "📺", title: "Watch" },
+                { icon: "🎧", title: "Listen" },
+                { icon: "🎮", title: "Interact" }
+            ].map((section) => (
+                <section key={section.title} className="space-y-4">
+                    <div className="flex items-center gap-2">
+                        <span className="text-2xl">{section.icon}</span>
+                        <h2 className="text-xl font-bold">{section.title}</h2>
+                    </div>
+                    <SkeletonGrid />
+                </section>
+            ))}
+        </div>
+    );
+}
+
 function TopicGrid({ items, type, username, expertiseId }: { items: Topic[]; type: string; username: string; expertiseId: string }) {
     return (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="space-y-4">
             {items.map((item) => (
                 <TopicGridItem
                     key={item.id}
@@ -139,7 +192,7 @@ function InteractiveGrid({ topic, username, expertiseId }: { topic: Topic; usern
     };
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="space-y-4">
             <Link href={`/profile/${username}/${expertiseId}/quiz/${quizTopic.id}`} className="block group cursor-pointer">
                 <TopicGridContent item={quizTopic} />
             </Link>
@@ -225,9 +278,9 @@ function ImagePreloader({ items }: { items: Topic[] }) {
 
 function SkeletonGrid() {
     return (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="space-y-4">
             <div className="space-y-3">
-                <div className="rounded-lg overflow-hidden bg-card border aspect-[3/4] animate-pulse bg-muted" />
+                <div className="rounded-lg overflow-hidden border aspect-3/4 animate-pulse bg-muted" />
                 <div className="space-y-2">
                     <div className="h-5 bg-muted rounded animate-pulse w-3/4" />
                     <div className="h-4 bg-muted rounded animate-pulse w-full" />

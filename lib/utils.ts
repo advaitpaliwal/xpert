@@ -45,6 +45,10 @@ export function tryFixAndParseJsonFromError<T>(error: unknown): T | null {
   text = balance("{", "}", text);
   text = balance("[", "]", text);
 
+  // Fix missing opening braces in arrays: },"key" -> },{"key"
+  // This handles cases where the AI generates array elements without proper object wrapping
+  text = text.replace(/\},\s*"(\w+)":/g, '},{"$1":');
+
   try {
     return JSON.parse(text) as T;
   } catch {

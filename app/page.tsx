@@ -6,10 +6,23 @@ import Image from "next/image";
 import { ArrowUp } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { AnimatedMemberPills } from "@/components/animated-member-pills";
+import hackathonMembers from "@/data/hackathon_members.json";
 
 export default function Home() {
   const [url, setUrl] = useState("");
   const router = useRouter();
+
+  // Split members into multiple rows for animated display
+  const chunkSize = Math.ceil(hackathonMembers.length / 6);
+  const memberRows = [
+    hackathonMembers.slice(0, chunkSize),
+    hackathonMembers.slice(chunkSize, chunkSize * 2),
+    hackathonMembers.slice(chunkSize * 2, chunkSize * 3),
+    hackathonMembers.slice(chunkSize * 3, chunkSize * 4),
+    hackathonMembers.slice(chunkSize * 4, chunkSize * 5),
+    hackathonMembers.slice(chunkSize * 5),
+  ];
 
   const handleGenerate = (username: string) => {
     // Immediately redirect to profile page
@@ -33,8 +46,9 @@ export default function Home() {
   };
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center p-4 overflow-hidden">
-      <div className="relative z-10 flex w-full max-w-2xl flex-col items-center gap-4">
+    <main className="relative flex min-h-screen flex-col items-center p-4 overflow-hidden">
+      {/* Centered Search Section */}
+      <div className="relative z-10 flex w-full max-w-2xl flex-col items-center gap-4 flex-1 justify-center pt-64">
         {/* Logo */}
         <div className="flex items-center gap-2 mb-2">
           <span className="text-8xl tracking-tight">𝕏pert</span>
@@ -98,6 +112,18 @@ export default function Home() {
             @shadcn
           </Button>
         </div>
+      </div>
+
+      {/* Animated Hackathon Member Pills - Fill to Bottom */}
+      <div className="w-full space-y-3 pb-4">
+        {memberRows.map((row, index) => (
+          <AnimatedMemberPills
+            key={index}
+            members={row}
+            reverse={index % 2 === 1}
+            duration={80 + index * 10}
+          />
+        ))}
       </div>
     </main>
   );

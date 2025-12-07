@@ -18,7 +18,6 @@ async function getParams(request: NextRequest) {
   if (request.method === "GET") {
     const search = request.nextUrl.searchParams;
     return {
-      username: search.get("username") || "",
       expertiseTopic: search.get("expertiseTopic") || "",
       expertiseDescription: search.get("expertiseDescription") || "",
       audioTitle: search.get("audioTitle") || "",
@@ -30,7 +29,7 @@ async function getParams(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { username, expertiseTopic, expertiseDescription, audioTitle, audioDescription } = await getParams(request);
+    const { expertiseTopic, expertiseDescription, audioTitle, audioDescription } = await getParams(request);
 
     if (!audioTitle || !audioDescription) {
       return NextResponse.json(
@@ -55,26 +54,26 @@ export async function POST(request: NextRequest) {
       const scriptResult = await generateObject({
         model: xai("grok-4-1-fast-non-reasoning"),
         schema: RelaxedPodcastScriptSchema,
-        system: "You are an expert podcast script writer. Create engaging, natural conversations between a knowledgeable host and an expert guest. Keep the whole conversation concise (aim for ~2 minutes of audio) with 2-3 sentences per turn. The dialogue should flow naturally with back-and-forth exchanges, questions, insights, and moments of humor or curiosity.",
-        prompt: `Create a podcast conversation script about "${audioTitle}" for @${username}'s audience.
+        system: "You are an expert podcast script writer. Create engaging, natural conversations between two knowledgeable hosts discussing interesting topics. Keep the whole conversation concise (aim for ~2 minutes of audio) with 2-3 sentences per turn. The dialogue should flow naturally with back-and-forth exchanges, questions, insights, and moments of humor or curiosity.",
+        prompt: `Create a podcast conversation script where two hosts discuss "${audioTitle}".
 
 Context:
-- This is part of their expertise in: ${expertiseTopic} - ${expertiseDescription}
 - Podcast topic: ${audioTitle}
 - Topic description: ${audioDescription}
+- Related expertise area: ${expertiseTopic} - ${expertiseDescription}
 
 Create a natural conversation between:
-- Host: An enthusiastic, curious interviewer who asks insightful questions
-- Guest: An expert (representing @${username}) who shares deep knowledge in an accessible way
+- Host: An enthusiastic, curious co-host who drives the conversation with questions and insights
+- Guest: A knowledgeable co-host who shares deep expertise and interesting perspectives
 
 The conversation should:
-1. Start with a warm introduction and hook
-2. Have the host ask interesting questions that guide the discussion
-3. Include the guest sharing insights, examples, and practical takeaways
+1. Start with a warm introduction and hook about the topic
+2. Have both hosts contribute - asking questions, sharing insights, building on each other's ideas
+3. Include examples, practical takeaways, and engaging discussion
 4. Flow naturally with back-and-forth exchanges (8-16 turns total)
-5. End with a memorable conclusion or call-to-action
+5. End with a memorable conclusion or key takeaway
 
-Make it conversational, educational, and engaging - like a real podcast discussion between two people who enjoy talking about this topic.`,
+Make it conversational, educational, and engaging - like two podcast hosts who enjoy exploring this topic together.`,
       }).catch((error) => {
         const fixed = tryFixAndParseJsonFromError<PodcastScript>(error);
         if (fixed?.turns) {
@@ -201,7 +200,7 @@ Make it conversational, educational, and engaging - like a real podcast discussi
       status: 200,
       headers: {
         "Content-Type": "audio/mp3",
-        "Cache-Control": "no-cache",
+        "Cache-Control": "public, max-age=31536000, immutable",
         Connection: "keep-alive",
       },
     });
